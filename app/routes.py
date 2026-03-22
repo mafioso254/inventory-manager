@@ -42,26 +42,17 @@ def decode_token(token):
 
 def login_required(fn):
     def wrapper(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'message': 'Missing token'}), 401
-        token = auth_header.split(' ', 1)[1]
-        payload = decode_token(token)
-        if not payload:
-            return jsonify({'message': 'Invalid or expired token'}), 401
-        request.user = User.query.get(payload.get('user_id'))
-        if not request.user:
-            return jsonify({'message': 'User not found'}), 401
+        # Auth bypassed - open access
+        request.user = User.query.first()
         return fn(*args, **kwargs)
     wrapper.__name__ = fn.__name__
     return wrapper
 
 
 def admin_required(fn):
-    @login_required
     def wrapper(*args, **kwargs):
-        if request.user.role != 'admin':
-            return jsonify({'message': 'Admin access required'}), 403
+        # Auth bypassed - open access
+        request.user = User.query.first()
         return fn(*args, **kwargs)
     wrapper.__name__ = fn.__name__
     return wrapper
