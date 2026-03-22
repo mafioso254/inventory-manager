@@ -45,10 +45,11 @@ with app.app_context():
             role='admin'
         )
         db.session.add(admin)
-        db.session.commit()
-        print(f"✓ Created admin user '{admin_username}' (change password ASAP)")
+        print(f"✓ Created admin user '{admin_username}'")
     else:
-        print(f"✓ Admin user '{admin_username}' already exists")
+        admin.password_hash = generate_password_hash(admin_password)
+        print(f"✓ Reset password for '{admin_username}'")
+    db.session.commit()
 
     print("✓ Database initialized")
 
