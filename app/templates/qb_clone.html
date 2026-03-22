@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickBooks Accountants Clone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    .fade-up-200 { animation-delay: 0.2s; }
+    .fade-up-350 { animation-delay: 0.35s; }
+    .fade-up-500 { animation-delay: 0.5s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-circle {
+      width: 340px; height: 340px;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 30% 30%, #38bdf8, #1e3a8a);
+      box-shadow: inset 0 0 50px rgba(255,255,255,0.2), 0 30px 60px rgba(0,0,0,0.35);
+    }
+    .talk-bubble {
+      background: #0ea5e9;
+      color: white;
+      border-radius: 999px;
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .talk-bubble::after {
+      content: '';
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #0ea5e9;
+      position: absolute;
+      bottom: -7px;
+      left: 16px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <header class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-8">
+          <a href="#" class="flex items-center gap-2 text-white font-bold text-lg"> 
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            QB Accounting
+          </a>
+          <nav class="hidden md:flex items-center gap-4 text-sm text-slate-300">
+            <a href="#" class="hover:text-white">Overview</a>
+            <a href="#features" class="hover:text-white">Features</a>
+            <a href="#trust" class="hover:text-white">Trust</a>
+            <a href="#pricing" class="hover:text-white">Pricing</a>
+          </nav>
+        </div>
+
+        <div class="hidden lg:flex items-center gap-4 text-sm text-slate-300">
+          <span>Today: <strong>2,114+ sales</strong></span>
+          <a href="#" class="px-4 py-2 border border-slate-700 rounded-md hover:bg-slate-800">Sign in</a>
+          <a href="#" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-md font-semibold">Sign up</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="pt-10 pb-16">
+      <section class="grid gap-10 lg:grid-cols-2 items-center">
+        <div class="space-y-6 fade-up">
+          <p class="text-cyan-300 uppercase tracking-widest font-semibold">Built for accountants</p>
+          <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">Upgrade your firm with smarter tax, compliance, and client workflows</h1>
+          <p class="max-w-xl text-slate-300">One platform for advisory, bookkeeping, review, and payroll — built for midsize firms, CPAs, and growing practices.</p>
+          <div class="flex flex-wrap gap-3">
+            <a href="#" class="px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold">Start free trial</a>
+            <a href="#" class="px-6 py-3 rounded-lg border border-slate-700 hover:bg-slate-800">Book a demo</a>
+          </div>
+        </div>
+
+        <div class="relative mx-auto fade-up-200">
+          <div class="hero-circle relative mx-auto flex items-center justify-center">
+            <div class="absolute top-4 right-4 bg-slate-950 text-cyan-400 px-3 py-2 rounded-full border border-cyan-400">Talk to sales</div>
+            <div class="w-60 h-56 bg-cyan-200/20 rounded-3xl border border-cyan-300/30 shadow-inner"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="trust" class="mt-16 fade-up-350">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8">
+          <h2 class="text-sm uppercase tracking-wider text-cyan-300">Trusted by</h2>
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div class="rounded-xl p-4 bg-slate-800/70 border border-slate-700">
+              <p class="text-3xl font-bold text-white">600K+</p>
+              <p class="text-slate-300">accounting professionals</p>
+            </div>
+            <div class="rounded-xl p-4 bg-slate-800/70 border border-slate-700">
+              <p class="text-3xl font-bold text-white">30M+</p>
+              <p class="text-slate-300">clients managed</p>
+            </div>
+            <div class="rounded-xl p-4 bg-slate-800/70 border border-slate-700">
+              <p class="text-3xl font-bold text-white">25+</p>
+              <p class="text-slate-300">years of industry experience</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="mt-16">
+        <h2 class="text-3xl font-extrabold fade-up-500">Key features for accounting practices</h2>
+        <p class="mt-2 text-slate-300 max-w-2xl">Everything your firm needs to deliver fast, accurate, and high-value work for every client.</p>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <article class="fade-up p-5 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-lg">
+            <h3 class="font-semibold text-white">Client onboarding in minutes</h3>
+            <p class="text-slate-300 mt-2">Auto-import clients from file and bank connections with recommended settings per service.</p>
+          </article>
+          <article class="fade-up-200 p-5 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-lg">
+            <h3 class="font-semibold text-white">Automated tax workflows</h3>
+            <p class="text-slate-300 mt-2">Built-in checklists, return pre-fill, and e-file updates for every jurisdiction.</p>
+          </article>
+          <article class="fade-up-350 p-5 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-lg">
+            <h3 class="font-semibold text-white">Real-time firm dashboards</h3>
+            <p class="text-slate-300 mt-2">Single view of cash, WIP, margin, and KPIs across all firms and clients.</p>
+          </article>
+          <article class="fade-up p-5 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-lg">
+            <h3 class="font-semibold text-white">Secure collaboration</h3>
+            <p class="text-slate-300 mt-2">Role-based access controls with audit trails and encrypted document storage.</p>
+          </article>
+          <article class="fade-up-200 p-5 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-lg">
+            <h3 class="font-semibold text-white">Proposals & billing</h3>
+            <p class="text-slate-300 mt-2">Create recurring packages, custom proposals, and send invoices in one flow.</p>
+          </article>
+          <article class="fade-up-350 p-5 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-lg">
+            <h3 class="font-semibold text-white">AI-based insights</h3>
+            <p class="text-slate-300 mt-2">Client health alerts and tax-saving suggestions delivered each day.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-slate-800 pt-10 pb-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div>
+          <h4 class="font-semibold text-white mb-3">Product</h4>
+          <ul class="text-slate-400 space-y-1 text-sm"><li><a href="#">Overview</a></li><li><a href="#">Workflow</a></li><li><a href="#">Reporting</a></li></ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-white mb-3">Company</h4>
+          <ul class="text-slate-400 space-y-1 text-sm"><li><a href="#">About</a></li><li><a href="#">Careers</a></li><li><a href="#">Partners</a></li></ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-white mb-3">Resources</h4>
+          <ul class="text-slate-400 space-y-1 text-sm"><li><a href="#">Blog</a></li><li><a href="#">Help Center</a></li><li><a href="#">Community</a></li></ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-white mb-3">Legal</h4>
+          <ul class="text-slate-400 space-y-1 text-sm"><li><a href="#">Terms</a></li><li><a href="#">Privacy</a></li><li><a href="#">Security</a></li></ul>
+        </div>
+      </div>
+      <p class="mt-8 text-slate-500 text-sm">© 2026 QuickBooks Accountants Clone</p>
+    </footer>
+  </div>
+</body>
+</html>

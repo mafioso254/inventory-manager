@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Manager - Stock Take</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c28;
+            --border: #2a2a3d;
+            --accent: #7c6aff;
+            --accent2: #ff6a6a;
+            --accent3: #6affb0;
+            --text: #e8e8f0;
+            --muted: #6b6b8a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 80% 20%, rgba(106,255,176,0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,10,15,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-brand span {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .nav-links { display: flex; gap: 0.25rem; align-items: center; }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--accent); }
+
+        .nav-logout {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-logout:hover { color: var(--text); border-color: var(--accent); }
+
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent3);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 0.7rem 1.4rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover:not(:disabled) { background: #9b8dff; transform: translateY(-1px); }
+        .btn-danger { background: rgba(255,106,106,0.15); color: var(--accent2); border: 1px solid rgba(255,106,106,0.3); }
+        .btn-danger:hover:not(:disabled) { background: rgba(255,106,106,0.25); transform: translateY(-1px); }
+        .btn-success { background: rgba(106,255,176,0.15); color: var(--accent3); border: 1px solid rgba(106,255,176,0.3); }
+        .btn-success:hover:not(:disabled) { background: rgba(106,255,176,0.25); transform: translateY(-1px); }
+        .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+        .btn-sm { font-size: 0.7rem; padding: 0.4rem 0.9rem; }
+
+        /* Status bar */
+        .status-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .status-dot.active {
+            background: var(--accent3);
+            box-shadow: 0 0 8px rgba(106,255,176,0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-meta {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        /* Scan bar */
+        .scan-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease 0.2s both;
+            display: none;
+        }
+
+        .scan-bar.visible { display: block; }
+
+        .scan-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .scan-input-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .scan-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .scan-input:focus { border-color: var(--accent3); }
+
+        .qty-input {
+            width: 100px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+            text-align: center;
+        }
+
+        .qty-input:focus { border-color: var(--accent); }
+
+        .scan-feedback {
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            min-height: 1.2rem;
+        }
+
+        .scan-feedback.ok { color: var(--accent3); }
+        .scan-feedback.err { color: var(--accent2); }
+
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: var(--surface2);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-sku {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .search-result-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .search-result-desc {
+            font-size: 0.75rem;
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Grid layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease 0.3s both;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-full {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: fadeUp 0.6s ease 0.3s both;
+        }
+
+        .panel-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .panel-count {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            text-align: left;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 0.85rem 1.5rem;
+            font-size: 0.82rem;
+            border-bottom: 1px solid rgba(42,42,61,0.5);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface2); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .badge-ok { background: rgba(106,255,176,0.1); color: var(--accent3); border: 1px solid rgba(106,255,176,0.2); }
+        .badge-low { background: rgba(255,106,106,0.1); color: var(--accent2); border: 1px solid rgba(255,106,106,0.2); }
+        .badge-pending { background: rgba(124,106,255,0.1); color: var(--accent); border: 1px solid rgba(124,106,255,0.2); }
+
+        .variance-pos { color: var(--accent3); }
+        .variance-neg { color: var(--accent2); }
+        .variance-zero { color: var(--muted); }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .table-scroll { max-height: 400px; overflow-y: auto; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            padding: 2rem;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-desc {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .form-group { margin-bottom: 1.2rem; }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: none;
+        }
+
+        input:focus, textarea:focus { border-color: var(--accent); }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .warn-box {
+            background: rgba(255,106,106,0.08);
+            border: 1px solid rgba(255,106,106,0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.78rem;
+            color: var(--accent2);
+            line-height: 1.6;
+            margin-bottom: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .two-col { grid-template-columns: 1fr; }
+            .page-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a class="nav-brand" href="/"><span></span>Inventory Manager</a>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/products">Products</a>
+            <a href="/stocktake" class="active">Stock Take</a>
+            <a href="/reports">Reports</a>
+            <button class="nav-logout" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <div>
+                <div class="page-label">Physical Count</div>
+                <h1 class="page-title">Stock Take</h1>
+            </div>
+            <div style="display:flex; gap:0.75rem;">
+                <button class="btn btn-primary" id="start-btn" onclick="openModal('startModal')">Start Stock Take</button>
+                <button class="btn btn-ghost" onclick="openModal('uploadModal')">Upload Excel</button>
+                <button class="btn btn-success" id="complete-btn" onclick="openModal('completeModal')" disabled>Complete & Save</button>
+                <button class="btn btn-danger" id="cancel-btn" onclick="cancelStocktake()" disabled>Cancel</button>
+            </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <div>
+                    <div class="status-text" id="status-text">No active stock take</div>
+                    <div class="status-meta" id="status-meta">Start a new stock take to begin counting</div>
+                </div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--muted);">
+                <span id="counted-count">0</span> / <span id="total-count">0</span> items counted
+            </div>
+        </div>
+
+        <!-- Scan bar (shown when active) -->
+        <div class="scan-bar" id="scan-bar">
+            <div class="scan-label">Scan or search for product to record count</div>
+            <div class="scan-input-row">
+                <div class="search-container" style="position: relative; flex: 1;">
+                    <input class="scan-input" id="scan-input" type="text" placeholder="Scan barcode / type SKU / search product name..." autocomplete="off">
+                    <div class="search-results" id="search-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+                <input class="qty-input" id="scan-qty" type="number" value="1" min="0">
+                <button class="btn btn-primary" onclick="recordScan()">Record</button>
+            </div>
+            <div class="scan-feedback" id="scan-feedback"></div>
+        </div>
+
+        <!-- Items grid -->
+        <div class="two-col" id="items-grid" style="display:none;">
+            <!-- Pending -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Pending</div>
+                    <div class="panel-count" id="pending-count">0 items</div>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>System</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-table">
+                            <tr><td colspan="3" class="empty-state">All items counted!</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Counted -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Counted</div>
+                    <div class="panel-count" id="counted-count-label">0 items</div>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>System</th>
+                                <th>Counted</th>
+                                <th>Variance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="counted-table">
+                            <tr><td colspan="5" class="empty-state">No items counted yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Past stocktakes -->
+        <div class="panel-full" id="history-panel">
+            <div class="panel-header">
+                <div class="panel-title">Stock Take History</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Performed By</th>
+                        <th>Items</th>
+                        <th>Total Variance</th>
+                        <th>Report</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table">
+                    <tr><td colspan="5" class="empty-state">No stock takes recorded yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Start Modal -->
+    <div class="modal-overlay" id="startModal">
+        <div class="modal">
+            <div class="modal-title">Start Stock Take</div>
+            <div class="modal-desc">
+                This will load all current products for counting. Scan or type each SKU and enter the physical quantity you count.
+            </div>
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <textarea id="start-notes" rows="2" placeholder="e.g. End of month count, Warehouse A..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('startModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="startStocktake()">Begin Count</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Modal -->
+    <div class="modal-overlay" id="completeModal">
+        <div class="modal">
+            <div class="modal-title">Complete Stock Take</div>
+            <div class="warn-box">
+                ⚠ This will update inventory levels for all counted items. Uncounted items will not be changed. This action cannot be undone.
+            </div>
+            <div id="complete-summary" style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem; line-height:1.8;"></div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('completeModal')">Go Back</button>
+                <button class="btn btn-success" onclick="confirmComplete()">Confirm & Update Inventory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal">
+            <div class="modal-title">Upload Stock Take Excel</div>
+            <div class="modal-desc">
+                Upload an Excel or CSV file with SKU and counted stock quantities. The file should have columns for SKU and Counted Stock.
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Excel/CSV File</label>
+                    <input type="file" id="uploadFile" accept=".xlsx,.xls,.csv" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('uploadModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload & Process</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        function authFetch(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    ...(options.headers || {})
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+        });
+
+        // State
+        let stocktakeItems = []; // { sku, name, system_count, physical_count, counted }
+
+        async function loadProducts() {
+            const res = await authFetch('/api/products');
+            if (res.status === 401) return window.location.href = '/login';
+            const products = await res.json();
+            stocktakeItems = products.map(p => ({
+                id: p.id,
+                sku: p.sku,
+                name: p.name,
+                system_count: p.current_stock,
+                physical_count: 0,
+                counted: false
+            }));
+            updateUI();
+        }
+
+        function updateUI() {
+            const pending = stocktakeItems.filter(i => !i.counted);
+            const counted = stocktakeItems.filter(i => i.counted);
+
+            document.getElementById('counted-count').textContent = counted.length;
+            document.getElementById('total-count').textContent = stocktakeItems.length;
+
+            // Pending table
+            const pendingTbody = document.getElementById('pending-table');
+            if (pending.length === 0) {
+                pendingTbody.innerHTML = '<tr><td colspan="3" class="empty-state">All items counted! ✓</td></tr>';
+            } else {
+                pendingTbody.innerHTML = '';
+                pending.forEach(item => {
+                    const row = pendingTbody.insertRow();
+                    row.insertCell(0).textContent = item.sku;
+                    row.insertCell(1).textContent = item.name;
+                    row.insertCell(2).textContent = item.system_count;
+                });
+            }
+
+            document.getElementById('pending-count').textContent = `${pending.length} items`;
+
+            // Counted table
+            const countedTbody = document.getElementById('counted-table');
+            if (counted.length === 0) {
+                countedTbody.innerHTML = '<tr><td colspan="5" class="empty-state">No items counted yet</td></tr>';
+            } else {
+                countedTbody.innerHTML = '';
+                counted.slice().reverse().forEach(item => {
+                    const variance = item.physical_count - item.system_count;
+                    const row = countedTbody.insertRow();
+                    row.insertCell(0).textContent = item.sku;
+                    row.insertCell(1).textContent = item.name;
+                    row.insertCell(2).textContent = item.system_count;
+                    row.insertCell(3).textContent = item.physical_count;
+                    const vCell = row.insertCell(4);
+                    vCell.textContent = (variance > 0 ? '+' : '') + variance;
+                    vCell.className = variance > 0 ? 'variance-pos' : variance < 0 ? 'variance-neg' : 'variance-zero';
+                });
+            }
+
+            document.getElementById('counted-count-label').textContent = `${counted.length} items`;
+        }
+
+        async function startStocktake() {
+            closeModal('startModal');
+            await loadProducts();
+
+            document.getElementById('status-dot').classList.add('active');
+            document.getElementById('status-text').textContent = 'Stock take in progress';
+            document.getElementById('status-meta').textContent = `Started at ${new Date().toLocaleTimeString()}`;
+
+            document.getElementById('scan-bar').classList.add('visible');
+            document.getElementById('items-grid').style.display = 'grid';
+            document.getElementById('history-panel').style.display = 'none';
+
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('complete-btn').disabled = false;
+            document.getElementById('cancel-btn').disabled = false;
+
+            document.getElementById('scan-input').focus();
+        }
+
+        function hideSearchResults() {
+            document.getElementById('search-results').style.display = 'none';
+        }
+
+        async function performSearch(query) {
+            if (query.length < 2) {
+                hideSearchResults();
+                return;
+            }
+
+            try {
+                const res = await authFetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+                if (res.ok) {
+                    const products = await res.json();
+                    showSearchResults(products, query);
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+        }
+
+        function showSearchResults(products, query) {
+            const resultsDiv = document.getElementById('search-results');
+            
+            if (products.length === 0) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            resultsDiv.innerHTML = '';
+            
+            products.forEach(product => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'search-result-item';
+                itemDiv.onclick = () => selectProduct(product);
+                
+                itemDiv.innerHTML = `
+                    <div class="search-result-sku">${product.sku}</div>
+                    <div class="search-result-name">${highlightMatch(product.name, query)}</div>
+                    <div class="search-result-desc">${product.description ? highlightMatch(product.description, query) : 'No description'}</div>
+                `;
+                
+                resultsDiv.appendChild(itemDiv);
+            });
+            
+            resultsDiv.style.display = 'block';
+        }
+
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        function selectProduct(product) {
+            document.getElementById('scan-input').value = product.sku;
+            hideSearchResults();
+            document.getElementById('scan-qty').focus();
+        }
+
+        function recordScan() {
+            const sku = document.getElementById('scan-input').value.trim();
+            const qty = parseInt(document.getElementById('scan-qty').value) || 0;
+
+            if (!sku) {
+                showFeedback('Please enter or scan a product SKU', 'err');
+                return;
+            }
+
+            if (qty <= 0) {
+                showFeedback('Please enter a valid quantity', 'err');
+                return;
+            }
+
+            const item = stocktakeItems.find(i => i.sku.toLowerCase() === sku.toLowerCase());
+            if (!item) {
+                showFeedback('Product not found in stock take', 'err');
+                return;
+            }
+
+            item.physical_count += qty;
+            item.counted = true;
+
+            document.getElementById('scan-input').value = '';
+            document.getElementById('scan-qty').value = '1';
+            document.getElementById('scan-input').focus();
+
+            updateUI();
+            showFeedback(`Added ${qty} to ${item.name} (${sku}). Total: ${item.physical_count}`, 'ok');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && document.getElementById('scan-bar').classList.contains('visible')) {
+                if (document.activeElement === document.getElementById('scan-input') ||
+                    document.activeElement === document.getElementById('scan-qty')) {
+                    recordScan();
+                }
+            }
+            if (e.key === 'Escape') {
+                hideSearchResults();
+            }
+        });
+
+        // Search functionality
+        let searchTimeout;
+        document.getElementById('scan-input').addEventListener('input', e => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => performSearch(query), 300);
+            } else {
+                hideSearchResults();
+            }
+        });
+
+        document.getElementById('scan-input').addEventListener('focus', () => {
+            const query = document.getElementById('scan-input').value.trim();
+            if (query.length >= 2) {
+                performSearch(query);
+            }
+        });
+
+        document.addEventListener('click', e => {
+            const searchContainer = document.querySelector('.search-container');
+            if (!searchContainer.contains(e.target)) {
+                hideSearchResults();
+            }
+        });
+
+        async function completeStocktake() {
+            const counted = stocktakeItems.filter(i => i.counted);
+            const summary = document.getElementById('complete-summary');
+
+            if (counted.length === 0) {
+                closeModal('completeModal');
+                alert('No items have been counted yet.');
+                return;
+            }
+
+            const totalVariance = counted.reduce((sum, i) => sum + (i.physical_count - i.system_count), 0);
+            const totalValueImpact = counted.reduce((sum, i) => {
+                // This is a simplified calculation - in a real app you'd get price from product data
+                return sum + (i.physical_count - i.system_count) * 0; // Placeholder
+            }, 0);
+
+            summary.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <strong>Stock Take Summary:</strong><br>
+                    Items counted: <strong style="color:var(--text)">${counted.length}</strong> of ${stocktakeItems.length}<br>
+                    Items skipped: <strong style="color:var(--muted)">${stocktakeItems.length - counted.length}</strong><br>
+                    Total variance: <strong style="color:${totalVariance >= 0 ? 'var(--accent3)' : 'var(--accent2)'}">${totalVariance >= 0 ? '+' : ''}${totalVariance}</strong>
+                </div>
+                <div style="background: var(--surface2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>Variance Report will be generated after completion.</strong><br>
+                    You can download the detailed report in CSV format.
+                </div>
+            `;
+
+            openModal('completeModal');
+        }
+
+        async function confirmComplete() {
+            const counted = stocktakeItems.filter(i => i.counted);
+            closeModal('completeModal');
+
+            const items = counted.map(i => ({ sku: i.sku, counted_stock: i.physical_count }));
+
+            const res = await authFetch('/api/stocktake', {
+                method: 'POST',
+                body: JSON.stringify({ items })
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                resetState();
+                loadHistory();
+                
+                // Show success message with variance report download option
+                const reportUrl = result.variance_report.report_url;
+                const message = `
+Stock take completed successfully!
+
+Summary:
+- Items counted: ${result.variance_report.total_items_counted}
+- Total variance: ${result.variance_report.total_variance >= 0 ? '+' : ''}${result.variance_report.total_variance}
+
+A detailed variance report has been generated.
+Click OK to download the CSV report.
+                `;
+                
+                if (confirm(message)) {
+                    // Download the variance report
+                    window.open(reportUrl + '?format=csv', '_blank');
+                }
+                
+                showFeedback('Stock take completed! Inventory updated.', 'ok');
+            } else {
+                const err = await res.json();
+                showFeedback(err.message || 'Failed to complete stock take.', 'err');
+            }
+        }
+
+        function cancelStocktake() {
+            if (!confirm('Cancel this stock take? All counted data will be lost.')) return;
+            resetState();
+        }
+
+        function resetState() {
+            stocktakeItems = [];
+
+            document.getElementById('status-dot').classList.remove('active');
+            document.getElementById('status-text').textContent = 'No active stock take';
+            document.getElementById('status-meta').textContent = 'Start a new stock take to begin counting';
+            document.getElementById('counted-count').textContent = '0';
+            document.getElementById('total-count').textContent = '0';
+
+            document.getElementById('scan-bar').classList.remove('visible');
+            document.getElementById('items-grid').style.display = 'none';
+            document.getElementById('history-panel').style.display = 'block';
+
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('complete-btn').disabled = true;
+            document.getElementById('cancel-btn').disabled = true;
+
+            document.getElementById('scan-feedback').textContent = '';
+        }
+
+        function showFeedback(msg, type) {
+            const el = document.getElementById('scan-feedback');
+            el.className = `scan-feedback ${type}`;
+            el.textContent = msg;
+        }
+
+        async function loadHistory() {
+            const res = await authFetch('/api/stocktake/reports');
+            if (!res.ok) return;
+            const data = await res.json();
+            const tbody = document.getElementById('history-table');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No stock takes recorded yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            data.forEach(st => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = new Date(st.timestamp).toLocaleString();
+                row.insertCell(1).textContent = st.performed_by || '—';
+                row.insertCell(2).textContent = st.items ? st.items.length : '—';
+                const totalVariance = st.items ? st.items.reduce((s, i) => s + (i.variance || 0), 0) : 0;
+                const vCell = row.insertCell(3);
+                vCell.textContent = (totalVariance > 0 ? '+' : '') + totalVariance;
+                vCell.className = totalVariance > 0 ? 'variance-pos' : totalVariance < 0 ? 'variance-neg' : 'variance-zero';
+                
+                // Add report download link
+                const reportCell = row.insertCell(4);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = `/api/stocktake/${st.id}/variance-report?format=csv`;
+                downloadLink.textContent = 'Download Report';
+                downloadLink.style.color = 'var(--accent)';
+                downloadLink.style.textDecoration = 'none';
+                downloadLink.target = '_blank';
+                reportCell.appendChild(downloadLink);
+            });
+        }
+
+        // Wire up complete button in modal
+        document.querySelector('#completeModal .btn-success').onclick = confirmComplete;
+
+        // Handle upload form
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('uploadFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file to upload');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            closeModal('uploadModal');
+
+            try {
+                const res = await fetch('/api/stocktake/upload-excel', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert(`Stock take uploaded successfully!\n\nSummary:\n- Total items: ${result.summary.total}\n- Success: ${result.summary.success}\n- Failed: ${result.summary.failed}`);
+                    loadHistory();
+                } else {
+                    alert('Upload failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Upload failed: ' + error.message);
+            }
+
+            // Reset form
+            fileInput.value = '';
+        });
+
+        loadHistory();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Manager - Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c28;
+            --border: #2a2a3d;
+            --accent: #7c6aff;
+            --accent2: #ff6a6a;
+            --accent3: #6affb0;
+            --text: #e8e8f0;
+            --muted: #6b6b8a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 40% at 80% 80%, rgba(106,255,176,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,10,15,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-brand span {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .nav-links { display: flex; gap: 0.25rem; }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--accent); }
+
+        .nav-logout {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-logout:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 0.7rem 1.4rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #9b8dff; transform: translateY(-1px); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover { color: var(--text); border-color: var(--accent3); color: var(--accent3); }
+
+        .panels-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1.4rem 1.8rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .panel-body { padding: 1.5rem 1.8rem; }
+        .panel-desc { color: var(--muted); font-size: 0.8rem; margin-bottom: 1.2rem; line-height: 1.6; }
+
+        .btn-group { display: flex; gap: 0.75rem; }
+
+        .report-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: fadeUp 0.6s ease 0.2s both;
+            display: none;
+        }
+
+        .report-panel.visible { display: block; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            text-align: left;
+            padding: 0.9rem 1.5rem;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(42,42,61,0.5);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface2); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .badge-ok { background: rgba(106,255,176,0.1); color: var(--accent3); border: 1px solid rgba(106,255,176,0.2); }
+        .badge-low { background: rgba(255,106,106,0.1); color: var(--accent2); border: 1px solid rgba(255,106,106,0.2); }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .panels-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a class="nav-brand" href="/"><span></span>Inventory Manager</a>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/products">Products</a>
+            <a href="/stocktake">Stock Take</a>
+            <a href="/reports" class="active">Reports</a>
+            <button class="nav-logout" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <div>
+                <div class="page-label">Analytics</div>
+                <h1 class="page-title">Reports</h1>
+            </div>
+        </div>
+
+        <div class="panels-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Stock Levels Report</div>
+                </div>
+                <div class="panel-body">
+                    <p class="panel-desc">Generate a full report of all products with their current stock levels and status.</p>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="loadStockReport()">View Report</button>
+                        <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Daily Transaction Reports</div>
+                </div>
+                <div class="panel-body">
+                    <p class="panel-desc">View automatically generated daily reports of all transactions from the previous day.</p>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="loadDailyReports()">View Reports</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Transaction History</div>
+                </div>
+                <div class="panel-body">
+                    <p class="panel-desc">View all recent stock transactions including purchases, sales, and adjustments.</p>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="loadTransactions()">Load Transactions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-panel" id="stock-report">
+            <div class="panel-header">
+                <div class="panel-title">Stock Levels</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Product Name</th>
+                        <th>Current Stock</th>
+                        <th>Min Level</th>
+                        <th>Status</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-table"></tbody>
+            </table>
+        </div>
+
+        <div class="report-panel" id="transactions-report">
+            <div class="panel-header">
+                <div class="panel-title">Transaction History</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Type</th>
+                        <th>Notes</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-table"></tbody>
+            </table>
+        </div>
+
+        <div class="report-panel" id="daily-reports">
+            <div class="panel-header">
+                <div class="panel-title">Daily Transaction Reports</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="daily-reports-table"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // Auth helpers - paste this at the top of every page's script
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        function authFetch(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    ...(options.headers || {})
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        async function loadStockReport() {
+            const response = await authFetch('/api/reports/stock-levels');
+            if (response.status === 401) return window.location.href = '/login';
+            const data = await response.json();
+            const tbody = document.getElementById('stock-table');
+            const panel = document.getElementById('stock-report');
+
+            tbody.innerHTML = '';
+            panel.classList.add('visible');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No products found</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = item.SKU;
+                row.insertCell(1).textContent = item['Product Name'];
+                row.insertCell(2).textContent = item['Current Stock'];
+                row.insertCell(3).textContent = item['Min Stock Level'];
+                row.insertCell(4).innerHTML = item.Status === 'LOW STOCK'
+                    ? '<span class="badge badge-low">Low Stock</span>'
+                    : '<span class="badge badge-ok">OK</span>';
+                row.insertCell(5).textContent = 'Kshs ' + parseFloat(item.Price).toFixed(2);
+            });
+        }
+
+        async function loadTransactions() {
+            const response = await authFetch('/api/transactions?limit=50');
+            if (response.status === 401) return window.location.href = '/login';
+            const data = await response.json();
+            const tbody = document.getElementById('transactions-table');
+            const panel = document.getElementById('transactions-report');
+
+            tbody.innerHTML = '';
+            panel.classList.add('visible');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No transactions yet</td></tr>';
+                return;
+            }
+
+            data.forEach(t => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = t.product_name || 'Unknown';
+                const qtyCell = row.insertCell(1);
+                qtyCell.textContent = (t.quantity > 0 ? '+' : '') + t.quantity;
+                qtyCell.style.color = t.quantity > 0 ? 'var(--accent3)' : 'var(--accent2)';
+                row.insertCell(2).textContent = t.transaction_type;
+                row.insertCell(3).textContent = t.notes || '—';
+                row.insertCell(4).textContent = new Date(t.timestamp).toLocaleString();
+            });
+        }
+        async function loadDailyReports() {
+            const response = await authFetch('/api/reports/daily');
+            if (response.status === 401) return window.location.href = '/login';
+            const reports = await response.json();
+            const tbody = document.getElementById('daily-reports-table');
+            const panel = document.getElementById('daily-reports');
+
+            tbody.innerHTML = '';
+            panel.classList.add('visible');
+
+            if (reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No daily reports available yet</td></tr>';
+                return;
+            }
+
+            reports.forEach(report => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = `${report.date.slice(0, 4)}-${report.date.slice(4, 6)}-${report.date.slice(6, 8)}`;
+                row.insertCell(1).textContent = report.type;
+                row.insertCell(2).textContent = formatFileSize(report.size);
+                const actionsCell = row.insertCell(3);
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'btn btn-sm btn-primary';
+                downloadBtn.textContent = 'Download';
+                downloadBtn.onclick = () => window.open(report.url, '_blank');
+                actionsCell.appendChild(downloadBtn);
+
+                if (report.type === 'PDF') {
+                    const printBtn = document.createElement('button');
+                    printBtn.className = 'btn btn-sm btn-ghost';
+                    printBtn.style.marginLeft = '0.5rem';
+                    printBtn.textContent = 'Print';
+                    printBtn.onclick = () => openDailyReportPrint(report.url);
+                    actionsCell.appendChild(printBtn);
+                }
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function openDailyReportPrint(url) {
+            const inlineUrl = `${url}?inline=1`;
+            const reportWindow = window.open(inlineUrl, '_blank');
+            if (!reportWindow) {
+                alert('Please allow popups in your browser to print the report.');
+                return;
+            }
+            reportWindow.focus();
+            reportWindow.onload = () => {
+                try {
+                    reportWindow.print();
+                } catch (err) {
+                    console.warn('Auto-print failed; please print from browser controls.', err);
+                }
+            };
+        }
+
+        async function exportCSV() {
+            const response = await authFetch('/api/reports/stock-levels?format=csv');
+            if (response.status === 401) return window.location.href = '/login';
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'stock_report.csv';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

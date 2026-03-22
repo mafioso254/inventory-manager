@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Manager - Products</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c28;
+            --border: #2a2a3d;
+            --accent: #7c6aff;
+            --accent2: #ff6a6a;
+            --accent3: #6affb0;
+            --text: #e8e8f0;
+            --muted: #6b6b8a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124,106,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,10,15,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-brand span {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .nav-links { display: flex; gap: 0.25rem; align-items: center; }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--accent); }
+
+        .nav-logout {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-logout:hover { color: var(--text); border-color: var(--accent); }
+
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 0.7rem 1.4rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #9b8dff; transform: translateY(-1px); }
+
+        .btn-sm { font-size: 0.7rem; padding: 0.4rem 0.9rem; }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+        .btn-green { background: #1a3a2a; color: var(--accent3); border: 1px solid rgba(106,255,176,0.2); }
+        .btn-green:hover { background: #1f4a34; transform: translateY(-1px); }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            text-align: left;
+            padding: 0.9rem 1.5rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 0.8rem 1.2rem;
+            font-size: 0.78rem;
+            border-bottom: 1px solid rgba(42,42,61,0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface2); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .badge-ok { background: rgba(106,255,176,0.1); color: var(--accent3); border: 1px solid rgba(106,255,176,0.2); }
+        .badge-low { background: rgba(255,106,106,0.1); color: var(--accent2); border: 1px solid rgba(255,106,106,0.2); }
+
+        .empty-state {
+            padding: 4rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            padding: 2rem;
+            animation: modalIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group { margin-bottom: 1.2rem; }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus { border-color: var(--accent); }
+        select option { background: var(--surface2); }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .info-box {
+            background: rgba(124,106,255,0.08);
+            border: 1px solid rgba(124,106,255,0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 1.2rem;
+        }
+
+        .result-box {
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .result-box.success {
+            background: rgba(106,255,176,0.08);
+            border: 1px solid rgba(106,255,176,0.2);
+            color: var(--accent3);
+            display: block;
+        }
+
+        .result-box.error {
+            background: rgba(255,106,106,0.08);
+            border: 1px solid rgba(255,106,106,0.2);
+            color: var(--accent2);
+            display: block;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a class="nav-brand" href="/"><span></span>Inventory Manager</a>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/products" class="active">Products</a>
+            <a href="/stocktake">Stock Take</a>
+            <a href="/reports">Reports</a>
+            <button class="nav-logout" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <div>
+                <div class="page-label">Catalog</div>
+                <h1 class="page-title">Products</h1>
+            </div>
+            <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+                <input id="scan-sku" type="text" placeholder="Scan or type SKU..."
+                    style="padding:0.6rem 0.9rem; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-family:'DM Mono',monospace; font-size:0.8rem; min-width:220px; outline:none;" />
+                <button class="btn btn-ghost btn-sm" onclick="lookupScanSku()">Load</button>
+                <input id="search-products" type="text" placeholder="Search SKU or Name..."
+                    oninput="onSearchProducts()"
+                    style="padding:0.6rem 0.9rem; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-family:'DM Mono',monospace; font-size:0.8rem; min-width:220px; outline:none;" />
+                <button class="btn btn-green btn-sm" onclick="openModal('importModal')">↑ Import CSV</button>
+                <button class="btn btn-primary" onclick="openModal('addModal')">+ Add Product</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Stock</th>
+                        <th>Min Level</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="products-table">
+                    <tr><td colspan="7" class="empty-state">Loading products...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-title">Add Product</div>
+            <div class="form-group">
+                <label>SKU *</label>
+                <input type="text" id="add-sku" placeholder="e.g. PROD-001">
+            </div>
+            <div class="form-group">
+                <label>Name *</label>
+                <input type="text" id="add-name" placeholder="Product name" maxlength="200">
+            </div>
+            <div class="form-group">
+                <label>Barcode</label>
+                <input type="text" id="add-barcode" placeholder="Optional barcode" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label>Price (Kshs)</label>
+                <input type="number" id="add-price" step="0.01" placeholder="0.00" min="0">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="add-description" placeholder="Optional description" rows="2" style="resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Initial Stock</label>
+                <input type="number" id="add-stock" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Min Stock Level</label>
+                <input type="number" id="add-min" value="5" min="1">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('addModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addProduct()">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adjust Stock Modal -->
+    <div class="modal-overlay" id="adjustModal">
+        <div class="modal">
+            <div class="modal-title">Adjust Stock</div>
+            <input type="hidden" id="adjust-id">
+            <div class="form-group">
+                <label>Quantity (+ to add, - to remove)</label>
+                <input type="number" id="adjust-qty" placeholder="e.g. 10 or -5">
+            </div>
+            <div class="form-group">
+                <label>Transaction Type</label>
+                <select id="adjust-type">
+                    <option value="adjustment">Adjustment</option>
+                    <option value="purchase">Purchase</option>
+                    <option value="sale">Sale</option>
+                    <option value="return">Return</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <input type="text" id="adjust-notes" placeholder="Optional notes">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('adjustModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="adjustStock()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <div class="modal-title">Import Products via CSV</div>
+            <div class="info-box">
+                CSV must have these columns: <strong>sku, name, price, current_stock, min_stock_level</strong><br>
+                Optional: barcode, description<br>
+                SKU and Name are required. Existing SKUs will be updated.<br>
+                <br>
+                Example row:<br>
+                PROD-001, Maize Flour 2kg, 8901234567890, 120, 50, 10, Bulk pack
+            </div>
+            <div class="form-group">
+                <label>Select CSV File</label>
+                <input type="file" id="csv-file" accept=".csv">
+            </div>
+            <div id="import-result" class="result-box"></div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('importModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="importCSV()">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div class="modal-overlay" id="productDetailsModal">
+        <div class="modal modal-lg">
+            <div class="modal-title">Product Details</div>
+            <input type="hidden" id="current-product-id">
+            <div id="product-details-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('productDetailsModal')">Close</button>
+                <button class="btn btn-primary" onclick="editProductDetails()">Edit Details</button>
+                <button class="btn btn-success" onclick="viewProductHistory()">View History</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        function authFetch(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    ...(options.headers || {})
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.classList.remove('open');
+            });
+        });
+
+        async function addProduct() {
+            const sku = document.getElementById('add-sku').value.trim();
+            const name = document.getElementById('add-name').value.trim();
+            const price = parseFloat(document.getElementById('add-price').value) || 0;
+            if (!sku || !name) return alert('SKU and Name are required.');
+            if (price < 0) return alert('Price cannot be negative.');
+
+            const res = await authFetch('/api/products', {
+                method: 'POST',
+                body: JSON.stringify({
+                    sku, name,
+                    barcode: document.getElementById('add-barcode').value.trim() || null,
+                    description: document.getElementById('add-description').value.trim() || '',
+                    price: price,
+                    current_stock: parseInt(document.getElementById('add-stock').value) || 0,
+                    min_stock_level: parseInt(document.getElementById('add-min').value) || 5
+                })
+            });
+
+            if (res.ok) {
+                showNotification('Product added successfully!', 'success');
+                resetAddProductForm();
+                closeModal('addModal');
+                loadProducts();
+            } else {
+                const err = await res.json();
+                showNotification(err.message || 'Failed to add product.', 'error');
+            }
+        }
+
+        function resetAddProductForm() {
+            document.getElementById('add-sku').value = '';
+            document.getElementById('add-name').value = '';
+            document.getElementById('add-barcode').value = '';
+            document.getElementById('add-price').value = '0';
+            document.getElementById('add-description').value = '';
+            document.getElementById('add-stock').value = '0';
+            document.getElementById('add-min').value = '5';
+        }
+
+        async function adjustStock() {
+            const id = document.getElementById('adjust-id').value;
+            const qty = parseInt(document.getElementById('adjust-qty').value);
+            if (isNaN(qty)) return showNotification('Enter a valid quantity.', 'error');
+
+            const res = await authFetch(`/api/products/${id}/adjust`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    quantity: qty,
+                    type: document.getElementById('adjust-type').value,
+                    notes: document.getElementById('adjust-notes').value
+                })
+            });
+
+            if (res.ok) {
+                showNotification('Stock adjusted successfully!', 'success');
+                closeModal('adjustModal');
+                document.getElementById('adjust-qty').value = '';
+                document.getElementById('adjust-notes').value = '';
+                loadProducts();
+            } else {
+                const err = await res.json();
+                showNotification(err.message || 'Failed to adjust stock.', 'error');
+            }
+        }
+
+        async function lookupScanSku() {
+            const sku = document.getElementById('scan-sku').value.trim();
+            if (!sku) return showNotification('Please scan or type a SKU or Barcode.', 'error');
+
+            const res = await authFetch(`/api/products/sku/${encodeURIComponent(sku)}`);
+            if (res.status === 404) return showNotification('SKU or Barcode not found.', 'error');
+            if (res.status === 401) return window.location.href = '/login';
+
+            const product = await res.json();
+            document.getElementById('scan-sku').value = '';
+            document.getElementById('adjust-id').value = product.id;
+            openModal('adjustModal');
+        }
+
+        async function importCSV() {
+            const fileInput = document.getElementById('csv-file');
+            const file = fileInput.files[0];
+            const resultBox = document.getElementById('import-result');
+
+            if (!file) {
+                resultBox.className = 'result-box error';
+                resultBox.textContent = 'Please select a CSV file.';
+                return;
+            }
+
+            try {
+                const text = await file.text();
+                if (!text.trim()) {
+                    resultBox.className = 'result-box error';
+                    resultBox.textContent = 'CSV file is empty.';
+                    return;
+                }
+                
+                const lines = text.trim().split('\n').filter(l => l.trim());
+                if (lines.length < 2) {
+                    resultBox.className = 'result-box error';
+                    resultBox.textContent = 'CSV must have headers and at least one data row.';
+                    return;
+                }
+
+                const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                const skuIdx = headers.indexOf('sku');
+                const nameIdx = headers.indexOf('name');
+                const barcodeIdx = headers.indexOf('barcode');
+                const priceIdx = headers.indexOf('price');
+                const stockIdx = headers.indexOf('current_stock');
+                const minIdx = headers.indexOf('min_stock_level');
+                const descIdx = headers.indexOf('description');
+
+                if (skuIdx === -1 || nameIdx === -1) {
+                    resultBox.className = 'result-box error';
+                    resultBox.textContent = 'CSV must have "sku" and "name" columns.';
+                    return;
+                }
+
+                let success = 0, failed = 0, skipped = 0;
+                const errors = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',').map(c => c.trim());
+                    
+                    if (cols.length < Math.max(skuIdx, nameIdx) + 1) {
+                        errors.push(`Row ${i + 1}: Invalid column count`);
+                        failed++;
+                        continue;
+                    }
+
+                    const sku = cols[skuIdx];
+                    const name = cols[nameIdx];
+                    
+                    if (!sku || !name) {
+                        errors.push(`Row ${i + 1}: Missing SKU or Name`);
+                        skipped++;
+                        continue;
+                    }
+
+                    const price = priceIdx !== -1 ? parseFloat(cols[priceIdx]) : 0;
+                    if (priceIdx !== -1 && (isNaN(price) || price < 0)) {
+                        errors.push(`Row ${i + 1}: Invalid price`);
+                        failed++;
+                        continue;
+                    }
+
+                    const res = await authFetch('/api/products', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            sku, name,
+                            barcode: barcodeIdx !== -1 && cols[barcodeIdx] ? cols[barcodeIdx] : null,
+                            description: descIdx !== -1 && cols[descIdx] ? cols[descIdx] : '',
+                            price: price,
+                            current_stock: stockIdx !== -1 ? parseInt(cols[stockIdx]) || 0 : 0,
+                            min_stock_level: minIdx !== -1 ? parseInt(cols[minIdx]) || 5 : 5
+                        })
+                    });
+
+                    if (res.ok) {
+                        success++;
+                    } else {
+                        const err = await res.json();
+                        errors.push(`Row ${i + 1}: ${err.message || 'Import failed'}`);
+                        failed++;
+                    }
+                }
+
+                const msg = `✓ ${success} imported, ✗ ${failed} errors, ⊘ ${skipped} skipped${errors.length > 0 ? ' (see details)' : ''}`;
+                resultBox.className = failed > 0 ? 'result-box error' : 'result-box success';
+                resultBox.textContent = msg;
+                if (errors.length > 0) resultBox.textContent += '\n\nErrors: ' + errors.slice(0, 5).join('\n');
+                
+                if (success > 0) loadProducts();
+                fileInput.value = '';
+            } catch (err) {
+                resultBox.className = 'result-box error';
+                resultBox.textContent = 'Error reading file: ' + err.message;
+            }
+        }
+
+        let allProducts = [];
+
+        function renderProducts(products) {
+            const tbody = document.getElementById('products-table');
+
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No products match the search query.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            products.forEach(p => {
+                const row = tbody.insertRow();
+                row.style.cursor = 'pointer';
+                row.onclick = () => openProductDetails(p);
+                row.insertCell(0).textContent = p.sku;
+                row.insertCell(1).textContent = p.name;
+                row.insertCell(2).textContent = p.current_stock;
+                row.insertCell(3).textContent = p.min_stock_level;
+                row.insertCell(4).textContent = 'Kshs ' + parseFloat(p.price).toFixed(2);
+                row.insertCell(5).innerHTML = p.status === 'LOW'
+                    ? '<span class="badge badge-low">Low Stock</span>'
+                    : '<span class="badge badge-ok">OK</span>';
+                const actions = row.insertCell(6);
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-ghost btn-sm';
+                btn.textContent = 'Adjust';
+                btn.onclick = (e) => {
+                    e.stopPropagation(); // Prevent row click
+                    document.getElementById('adjust-id').value = p.id;
+                    openModal('adjustModal');
+                };
+                actions.appendChild(btn);
+            });
+        }
+
+        function onSearchProducts() {
+            const query = document.getElementById('search-products').value.trim().toLowerCase();
+            if (!query) {
+                renderProducts(allProducts);
+                return;
+            }
+
+            const filtered = allProducts.filter(p => {
+                return p.sku.toLowerCase().includes(query)
+                    || p.name.toLowerCase().includes(query)
+                    || (p.barcode && p.barcode.toLowerCase().includes(query));
+            });
+
+            renderProducts(filtered);
+        }
+
+        async function loadProducts() {
+            const response = await authFetch('/api/products');
+            if (response.status === 401) return window.location.href = '/login';
+            const products = await response.json();
+            allProducts = products;
+            renderProducts(products);
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `result-box ${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.bottom = '2rem';
+            notification.style.right = '2rem';
+            notification.style.zIndex = '300';
+            notification.style.animation = 'slideIn 0.3s ease';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        function openProductDetails(product) {
+            const content = document.getElementById('product-details-content');
+            content.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--accent);">Product Information</h3>
+                        <div style="display: grid; gap: 0.8rem;">
+                            <div><strong>SKU:</strong> ${product.sku}</div>
+                            <div><strong>Name:</strong> ${product.name}</div>
+                            <div><strong>Barcode:</strong> ${product.barcode || 'N/A'}</div>
+                            <div><strong>Description:</strong> ${product.description || 'No description'}</div>
+                            <div><strong>Price:</strong> Kshs ${parseFloat(product.price).toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--accent);">Stock Information</h3>
+                        <div style="display: grid; gap: 0.8rem;">
+                            <div><strong>Current Stock:</strong> ${product.current_stock}</div>
+                            <div><strong>Min Stock Level:</strong> <span id="min-level-display">${product.min_stock_level}</span></div>
+                            <div><strong>Status:</strong> 
+                                <span class="badge ${product.status === 'LOW' ? 'badge-low' : 'badge-ok'}">
+                                    ${product.status === 'LOW' ? 'Low Stock' : 'OK'}
+                                </span>
+                            </div>
+                            <div><strong>Value:</strong> Kshs ${(product.current_stock * product.price).toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="product-history-section" style="display: none;">
+                    <h3 style="margin-bottom: 1rem; color: var(--accent);">Transaction History</h3>
+                    <div id="product-history-content">Loading...</div>
+                </div>
+            `;
+            document.getElementById('current-product-id').value = product.id;
+            openModal('productDetailsModal');
+        }
+
+        async function viewProductHistory() {
+            const productId = document.getElementById('current-product-id').value;
+            const historySection = document.getElementById('product-history-section');
+            const historyContent = document.getElementById('product-history-content');
+
+            historySection.style.display = 'block';
+            historyContent.innerHTML = 'Loading transaction history...';
+
+            try {
+                const response = await authFetch(`/api/products/${productId}/history`);
+                if (response.ok) {
+                    const transactions = await response.json();
+                    if (transactions.length === 0) {
+                        historyContent.innerHTML = '<p>No transactions found for this product.</p>';
+                    } else {
+                        let html = '<table style="width: 100%; border-collapse: collapse;">';
+                        html += '<thead><tr style="background: var(--surface2);"><th>Date</th><th>Type</th><th>Quantity</th><th>Notes</th></tr></thead><tbody>';
+                        transactions.forEach(t => {
+                            const quantityClass = t.quantity > 0 ? 'color: var(--accent3);' : 'color: var(--accent2);';
+                            html += `<tr style="border-bottom: 1px solid var(--border);">
+                                <td>${new Date(t.timestamp).toLocaleString()}</td>
+                                <td>${t.transaction_type}</td>
+                                <td style="${quantityClass}">${t.quantity > 0 ? '+' : ''}${t.quantity}</td>
+                                <td>${t.notes || ''}</td>
+                            </tr>`;
+                        });
+                        html += '</tbody></table>';
+                        historyContent.innerHTML = html;
+                    }
+                } else {
+                    historyContent.innerHTML = '<p>Error loading transaction history.</p>';
+                }
+            } catch (error) {
+                historyContent.innerHTML = '<p>Error loading transaction history.</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        function editProductDetails() {
+            const productId = document.getElementById('current-product-id').value;
+            const minLevelDisplay = document.getElementById('min-level-display');
+            const currentValue = minLevelDisplay.textContent;
+
+            // Replace the display with an input
+            minLevelDisplay.innerHTML = `<input type="number" id="edit-min-level" value="${currentValue}" min="0" style="width: 60px; padding: 0.2rem; border: 1px solid var(--border); background: var(--surface2); color: var(--text); border-radius: 4px;"> 
+                <button class="btn btn-sm btn-primary" onclick="saveMinLevel(${productId})" style="margin-left: 0.5rem;">Save</button>
+                <button class="btn btn-sm btn-ghost" onclick="cancelEditMinLevel('${currentValue}')" style="margin-left: 0.5rem;">Cancel</button>`;
+        }
+
+        async function saveMinLevel(productId) {
+            const newMinLevel = parseInt(document.getElementById('edit-min-level').value);
+            if (isNaN(newMinLevel) || newMinLevel < 0) {
+                showNotification('Please enter a valid minimum level', 'error');
+                return;
+            }
+
+            try {
+                const response = await authFetch(`/api/products/${productId}/min-level`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ min_stock_level: newMinLevel })
+                });
+
+                if (response.ok) {
+                    document.getElementById('min-level-display').textContent = newMinLevel;
+                    showNotification('Minimum stock level updated successfully', 'success');
+                    // Refresh the products list to update status
+                    loadProducts();
+                } else {
+                    showNotification('Error updating minimum stock level', 'error');
+                }
+            } catch (error) {
+                showNotification('Error updating minimum stock level', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function cancelEditMinLevel(originalValue) {
+            document.getElementById('min-level-display').textContent = originalValue;
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>
